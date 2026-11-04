@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>김태인</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            cursor: pointer;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+        h1 {
+            font-size: 5rem;
+            color: #000000;
+            user-select: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>김태인</h1>
+
+    <script>
+        let audioCtx = null;
+        let isTriggered = false;
+
+        document.body.addEventListener('click', () => {
+            // 1. 전체화면으로 전환
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log("전체화면 전환 실패:", err);
+                });
+            }
+
+            // 2. 모바일 기기 진동 발생 (지원 기기만 해당)
+            if ("vibrate" in navigator) {
+                // 강하고 요란하게 진동 패턴 반복 (1초 진동, 0.1초 휴식)
+                navigator.vibrate([1000, 100, 1000, 100, 2000, 100, 1500]);
+            }
+
+            // 3. 웹 오디오 API를 이용한 아주 시끄러운 소리 재생
+            if (!isTriggered) {
+                isTriggered = true;
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // 톱니파(sawtooth)를 이용해 귀에 거슬리고 시끄러운 경고음 반복 생성
+                    setInterval(() => {
+                        if (!audioCtx) return;
+                        let osc = audioCtx.createOscillator();
+                        let gainNode = audioCtx.createGain();
+
+                        osc.type = 'sawtooth'; // 날카로운 소리
+                        osc.frequency.setValueAtTime(600, audioCtx.currentTime); 
+                        osc.frequency.exponentialRampToValueAtTime(1400, audioCtx.currentTime + 0.15);
+
+                        // 볼륨 설정 (너무 크면 귀가 아플 수 있으니 적절히 조절됨)
+                        gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
+
+                        osc.connect(gainNode);
+                        gainNode.connect(audioCtx.destination);
+
+                        osc.start();
+                        osc.stop(audioCtx.currentTime + 0.2);
+                    }, 250); // 0.25초마다 반복
+                } catch (e) {
+                    console.log("오디오 재생 오류:", e);
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
